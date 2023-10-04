@@ -1,1 +1,27 @@
-neofetch
+
+alias ls='ls --color=auto'
+
+PS1=$'\033[36m%n\033[m@\033[32m%m:\033[33;1m%~\033[m\$ '
+export EDITOR=vim
+
+# User executables
+export PATH=$PATH:$HOME/.local/bin
+
+# Java
+export JAVA_HOME=/opt/android-studio/jbr
+export PATH=$JAVA_HOME/bin:$PATH
+
+# Android SDK
+export ANDROID_HOME=$HOME/Android/Sdk
+export ANDROID_SDK_ROOT=$ANDROID_HOME
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
+
+# Flutter
+export PATH=$PATH:$HOME/fvm/default/bin:$HOME/.pub-cache/bin
+export CHROME_EXECUTABLE=/opt/google/chrome/chrome
+
+# Neofetch
+LIVE_COUNTER=$(ps a | awk '{print $2}' | grep -vi -e "tty*" -e "?" | uniq | wc -l)
+if [ $LIVE_COUNTER -eq 1 ]; then
+  neofetch
+fi
