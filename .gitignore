@@ -3,4 +3,4 @@
 
 ############# Except: #############
 !.gitignore
-!.zsh_profile
+!.zsh_profile*

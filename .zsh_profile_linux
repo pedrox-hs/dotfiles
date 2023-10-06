@@ -1,0 +1,18 @@
+#!/bin/zsh
+
+# bindkeys
+bindkey  "^[[H"   beginning-of-line
+bindkey  "^[[F"   end-of-line
+bindkey  "^[[3~"  delete-char
+
+# fzf
+FZF_PATH=/usr/share/fzf
+if [ -d "$FZF_PATH" ]; then
+  source "$FZF_PATH/key-bindings.zsh"
+  source "$FZF_PATH/completion.zsh"
+fi
+
+# environment variables
+export JAVA_HOME=/opt/android-studio/jbr
+export ANDROID_HOME=$HOME/Android/Sdk
+export CHROME_EXECUTABLE=/opt/google/chrome/chrome
