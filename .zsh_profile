@@ -1,8 +1,27 @@
 
 alias ls='ls --color=auto'
 
-PS1=$'\033[36m%n\033[m@\033[32m%m:\033[33;1m%~\033[m\$ '
+setopt HIST_IGNORE_SPACE
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_FIND_NO_DUPS
+
+HISTFILE=$HOME/.histfile
+HISTSIZE=5000
+SAVEHIST=10000
+
 export EDITOR=vim
+
+# bindkeys
+bindkey  "^[[H"   beginning-of-line
+bindkey  "^[[F"   end-of-line
+bindkey  "^[[3~"  delete-char
+
+# FZF
+. /usr/share/fzf/key-bindings.zsh
+. /usr/share/fzf/completion.zsh
+
+# asdf
+. "$HOME/.asdf/asdf.sh"
 
 # User executables
 export PATH=$PATH:$HOME/.local/bin
