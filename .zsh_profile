@@ -21,7 +21,7 @@ KERNEL_PROFILE="$HOME/.zsh_profile_$KERNEL_NAME"
 [ -f "$HOME/.asdf/asdf.sh" ] && source "$HOME/.asdf/asdf.sh"
 
 # User executables
-export PATH=$PATH:$HOME/.local/bin
+export PATH=$PATH:$HOME/.local/bin:$HOME/Devel/bin
 
 # Java
 export PATH=$JAVA_HOME/bin:$PATH
