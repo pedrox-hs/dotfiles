@@ -13,9 +13,10 @@ SAVEHIST=10000
 export EDITOR=vim
 
 # Load kernel specific profile
-KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
-KERNEL_PROFILE="$HOME/.zsh_profile_$KERNEL_NAME"
-[ -f "$KERNEL_PROFILE" ] && source "$KERNEL_PROFILE"
+__kernel_name=$(uname -s | tr '[:upper:]' '[:lower:]')
+__kernel_profile="$HOME/.zsh_profile_$__kernel_name"
+[ -f "$__kernel_profile" ] && source "$__kernel_profile"
+unset __kernel_name __kernel_profile
 
 # asdf
 [ -f "$HOME/.asdf/asdf.sh" ] && source "$HOME/.asdf/asdf.sh"
@@ -32,10 +33,33 @@ export ANDROID_SDK_ROOT=$ANDROID_HOME
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
 
 # Flutter / FVM
-export PATH=$PATH:$HOME/fvm/default/bin:$HOME/.pub-cache/bin
+[ -d "$HOME/fvm/default" ] && export PATH=$PATH:$HOME/fvm/default/bin
+[ -d "$HOME/.pub-cache/bin" ] && export PATH=$PATH:$HOME/.pub-cache/bin
+
+# Miniforge
+__miniforge_home="$HOME/miniforge3"
+if [ -d "$__miniforge_home" ]; then
+    __conda_env="$__miniforge_home/etc/profile.d/conda.sh"
+    __mamba_env="$__miniforge_home/etc/profile.d/mamba.sh"
+
+    __conda_setup="$($__miniforge_home/bin/conda 'shell.zsh' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
+    else
+        if [ -f "$__conda_env" ]; then
+            source "$__conda_env"
+        else
+            export PATH="$__miniforge_home/bin:$PATH"
+        fi
+    fi
+
+    [ -f "$__mamba_env" ] && source "$__mamba_env"
+fi
+unset __miniforge_home __conda_setup __conda_script __mamba_script
 
 # Neofetch
-LIVE_COUNTER=$(ps a | awk '{print $2}' | grep -vi -e "tty*" -e "?" | uniq | wc -l)
-if [ $LIVE_COUNTER -eq 1 ]; then
+__live_counter=$(ps a | awk '{print $2}' | grep -vi -e "tty*" -e "?" | uniq | wc -l)
+if [ $__live_counter -eq 1 ]; then
   neofetch
 fi
+unset __live_counter

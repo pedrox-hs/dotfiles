@@ -16,3 +16,10 @@ fi
 export JAVA_HOME=/opt/android-studio/jbr
 export ANDROID_HOME=$HOME/Android/Sdk
 export CHROME_EXECUTABLE=/opt/google/chrome/chrome
+
+# Android Studio
+if [ -f "/opt/android-studio/bin/studio" ]; then
+  export PATH="/opt/android-studio/bin:$PATH"
+else
+  alias studio=/opt/android-studio/bin/studio.sh
+fi
