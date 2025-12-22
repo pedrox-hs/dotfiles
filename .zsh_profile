@@ -32,7 +32,11 @@ export ANDROID_SDK_ROOT=$ANDROID_HOME
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
 
 # Flutter / FVM
-export PATH=$PATH:$HOME/fvm/default/bin:$HOME/.pub-cache/bin
+#export PATH=$PATH:$HOME/fvm/default/bin:$HOME/.pub-cache/bin
+export PATH=$PATH:$HOME/.pub-cache/bin
+
+# Miniforge / Conda / Mamba
+# export PATH=$HOME/miniforge3/bin:$PATH
 
 # Neofetch
 LIVE_COUNTER=$(ps a | awk '{print $2}' | grep -vi -e "tty*" -e "?" | uniq | wc -l)

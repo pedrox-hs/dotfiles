@@ -3,6 +3,19 @@
 # fzf
 [ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
 
-# environment variables
+source "$(brew --prefix asdf)/libexec/asdf.sh"
+
+# Docker
+export PATH=$PATH:$HOME/.docker/bin
+
+# Python
+export PATH=$HOME/Library/Python/3.11/bin:$PATH
+
+# IDEA
+export PATH=$PATH:/Applications/IntelliJ\ IDEA\ CE.app/Contents/MacOS
+
+# Android
+export PATH=$PATH:/Applications/Android\ Studio.app/Contents/MacOS
 export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
 export ANDROID_HOME=$HOME/Library/Android/sdk
+
