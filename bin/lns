@@ -1,0 +1,72 @@
+#!/bin/bash
+# Usage: link <source_path> <dest_path>
+
+SRC="$1"
+DEST="$2"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+# Colors
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# 1. Basic Validation
+if [ -z "$SRC" ] || [ -z "$DEST" ]; then
+    echo -e "${RED}Usage: link <source> <dest>${NC}"
+    exit 1
+fi
+
+# Resolve absolute path for Source if it is relative
+# (Ensures symlinks don't break if run from different dirs)
+if [[ "$SRC" != /* ]]; then
+    SRC="$(realpath $SRC)"
+fi
+
+# 2. Check if Source exists
+if [ ! -e "$SRC" ]; then
+    echo -e "${YELLOW}[SKIP] Source not found: $SRC${NC}"
+    exit 0
+fi
+
+# 3. Create Parent Directory (if missing)
+PARENT_DIR=$(dirname "$DEST")
+if [ ! -d "$PARENT_DIR" ]; then
+    if [ -n "$DRY_RUN" ]; then
+        echo -e "${BLUE}[DRY-RUN]${NC} mkdir -p $PARENT_DIR"
+    else
+        mkdir -p "$PARENT_DIR"
+    fi
+fi
+
+# 4. Idempotency Check (Is it already linked correctly?)
+# We use simple 'readlink' for macOS compatibility
+if [ -L "$DEST" ]; then
+    CURRENT_TARGET=$(readlink "$DEST")
+    if [ "$CURRENT_TARGET" == "$SRC" ]; then
+        if [ -n "$VERBOSE" ]; then
+            echo -e "${GREEN}[OK]${NC} Already linked: $DEST"
+        fi
+        exit 0
+    fi
+fi
+
+# 5. Backup Logic (If destination exists and is not the correct link)
+if [ -e "$DEST" ] || [ -L "$DEST" ]; then
+    BACKUP="${DEST}.backup.${TIMESTAMP}"
+    if [ -n "$DRY_RUN" ]; then
+        echo -e "${BLUE}[DRY-RUN]${NC} mv $DEST $BACKUP"
+    else
+        echo -e "${YELLOW}[BACKUP]${NC} Moving existing config to $BACKUP"
+        mv "$DEST" "$BACKUP"
+    fi
+fi
+
+# 6. Create Link
+if [ -n "$DRY_RUN" ]; then
+    echo -e "${BLUE}[DRY-RUN]${NC} ln -sf $SRC $DEST"
+else
+    ln -sf "$SRC" "$DEST"
+    echo -e "${GREEN}[LINK]${NC} $DEST -> $SRC"
+fi

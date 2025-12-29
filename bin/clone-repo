@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Base directory where repositories will be cloned
+REPOS_DIR="${REPOS_DIR:-$HOME/Devel/Repos}"
+
+# Check for correct usage
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    echo "Usage: $0 <repository_url> [optional_user/repo]"
+    exit 1
+fi
+
+REPO_URL="$1"
+OVERRIDE_PATH="$2"
+
+# Function to extract 'user/repo' from the URL using Regex
+extract_path() {
+    local url="$1"
+    # Regex to capture the last two segments (user/repo), ignoring .git suffix
+    if [[ "$url" =~ ([^/:]+)/([^/]+)(\.git)?$ ]]; then
+        echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+    else
+        echo "Error: Could not parse repository path from URL." >&2
+        exit 1
+    fi
+}
+
+# Determine the target directory
+if [ -n "$OVERRIDE_PATH" ]; then
+    TARGET_PATH="$OVERRIDE_PATH"
+else
+    TARGET_PATH=$(extract_path "$REPO_URL")
+fi
+
+FULL_DIR="$REPOS_DIR/$TARGET_PATH"
+mkdir -p $REPOS_DIR
+
+# Git clone automatically creates the directory if it doesn't exist
+# We pass the full path to git clone to ensure structure matches REPOS_DIR/user/repo
+echo "Cloning into: $FULL_DIR"
+git clone "$REPO_URL" "$FULL_DIR"

@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+import sys
+import os
+import shutil
+import tempfile
+
+# --- Progress Bar Handling ---
+try:
+    from tqdm import tqdm
+    HAS_TQDM = True
+except ImportError:
+    HAS_TQDM = False
+
+class SimpleProgressBar:
+    """
+    A simple fallback progress bar that mimics tqdm's basic interface.
+    """
+    def __init__(self, total, unit="step"):
+        self.total = total
+        self.current = 0
+        self.desc = "Processing"
+        self.bar_length = 30
+        self._last_print_len = 0
+        self._print_bar()
+
+    def set_description(self, desc):
+        self.desc = desc
+        self._print_bar()
+
+    def update(self, n=1):
+        self.current += n
+        if self.current > self.total:
+            self.current = self.total
+        self._print_bar()
+
+    def close(self):
+        print() 
+
+    def _print_bar(self):
+        percent = 100 * (self.current / float(self.total)) if self.total > 0 else 0
+        filled_length = int(self.bar_length * self.current // self.total) if self.total > 0 else 0
+        bar = '█' * filled_length + '-' * (self.bar_length - filled_length)
+        output = f"\r{self.desc}: |{bar}| {percent:.1f}%"
+        
+        padding = " " * max(0, self._last_print_len - len(output))
+        sys.stdout.write(output + padding)
+        sys.stdout.flush()
+        self._last_print_len = len(output)
+
+# --- Main Script ---
+
+def check_dependencies():
+    missing = []
+    if not shutil.which("ffmpeg"):
+        missing.append("ffmpeg")
+    if not shutil.which("gifsicle"):
+        missing.append("gifsicle")
+    
+    if missing:
+        print(f"Error: Missing dependencies: {', '.join(missing)}")
+        print("Please install them before running this script.")
+        sys.exit(1)
+
+def run_command(cmd, desc="Processing"):
+    try:
+        subprocess.run(
+            cmd, 
+            check=True, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE,
+            text=True
+        )
+    except subprocess.CalledProcessError as e:
+        sys.stdout.write("\n")
+        print(f"Error during: {desc}")
+        print(e.stderr)
+        raise e
+
+def get_file_size_mb(path):
+    """Returns file size in MB rounded to 2 decimals."""
+    if os.path.isfile(path):
+        return round(os.path.getsize(path) / (1024 * 1024), 2)
+    return 0
+
+def generate_gif(file_path, args, pbar):
+    # Create a temporary file for the palette
+    fd, palette_path = tempfile.mkstemp(suffix=".png")
+    os.close(fd) 
+
+    base_name = os.path.splitext(file_path)[0]
+    output_gif = f"{base_name}.gif"
+    
+    try:
+        # --- 1. Construct Options ---
+        input_opts = []
+        if args.start_time is not None:
+            input_opts.extend(["-ss", str(args.start_time)])
+        if args.duration is not None:
+            input_opts.extend(["-t", str(args.duration)])
+
+        # --- 2. Construct Filter Chain ---
+        filters = []
+        
+        # Speed Filter
+        if args.speed != 1.0:
+            filters.append(f"setpts=(1/{args.speed})*PTS")
+            
+        # Resize Filter
+        if not args.original_size:
+            filters.append(f"scale={args.width}:-2:flags=lanczos")
+            
+        if not filters:
+            base_filter = "null"
+        else:
+            base_filter = ",".join(filters)
+
+        # --- 3. Generate Palette ---
+        pbar.set_description(f"Gen Palette ({os.path.basename(file_path)})")
+        
+        # Note: We do NOT apply FPS (-r) to palette generation usually, 
+        # but applying it here can speed up palette gen by dropping frames early.
+        # We will apply -r to the palette input to match the output GIF logic.
+        
+        palette_vf = f"{base_filter},format=rgb24,palettegen"
+        
+        cmd_palette = [
+            "ffmpeg", "-y",
+            *input_opts,
+            "-i", file_path,
+            "-vf", palette_vf,
+            "-update", "1", 
+            palette_path
+        ]
+        run_command(cmd_palette, "Palette Generation")
+        pbar.update(1)
+
+        # --- 4. Generate Raw GIF (With forced FPS) ---
+        pbar.set_description(f"Render GIF ({os.path.basename(file_path)})")
+        
+        if base_filter == "null":
+             gif_lavfi = "[0:v][1:v] paletteuse"
+        else:
+             gif_lavfi = f"{base_filter} [x]; [x][1:v] paletteuse"
+
+        cmd_gif = [
+            "ffmpeg", "-y",
+            *input_opts,
+            "-i", file_path,
+            "-i", palette_path,
+            "-r", str(args.fps),  # <--- CRITICAL FIX: FORCE FPS
+            "-lavfi", gif_lavfi,
+            output_gif
+        ]
+        run_command(cmd_gif, "GIF Generation")
+        pbar.update(1)
+
+        # --- 5. Optimization (Gifsicle) ---
+        pbar.set_description(f"Opt 256c ({os.path.basename(file_path)})")
+        
+        out_255 = f"{base_name}.255.gif"
+        cmd_opt_255 = [
+            "gifsicle", "-i", output_gif,
+            "-O3", "--colors", "255",
+            "-o", out_255
+        ]
+        run_command(cmd_opt_255, "Optimization 255 colors")
+        pbar.update(1)
+
+        pbar.set_description(f"Opt 128c ({os.path.basename(file_path)})")
+        
+        out_128 = f"{base_name}.128.gif"
+        cmd_opt_128 = [
+            "gifsicle", "-i", output_gif,
+            "-O3", "--colors", "128",
+            "-o", out_128
+        ]
+        run_command(cmd_opt_128, "Optimization 128 colors")
+        pbar.update(1)
+
+        # Remove the unoptimized base gif to save space (optional)
+        # os.remove(output_gif) 
+
+        return out_255, out_128
+
+    finally:
+        if os.path.exists(palette_path):
+            os.remove(palette_path)
+
+def main():
+    parser = argparse.ArgumentParser(description="Convert video files to optimized animated GIFs.")
+    
+    parser.add_argument("files", nargs='+', help="Video files to process")
+    parser.add_argument("-w", "--width", type=int, default=360, 
+                        help="Target width (default: 360)")
+    parser.add_argument("-o", "--original-size", action="store_true", 
+                        help="Keep original size (disable resizing)")
+    parser.add_argument("-s", "--start-time", type=float, 
+                        help="Start time in seconds")
+    parser.add_argument("-t", "--duration", type=float, 
+                        help="Duration in seconds")
+    parser.add_argument("-x", "--speed", type=float, default=1.0, 
+                        help="Speed multiplier")
+    # NEW ARGUMENT: FPS
+    parser.add_argument("--fps", type=int, default=15, 
+                        help="Frames per second (default: 15). Lower values = smaller file, normal speed.")
+
+    args = parser.parse_args()
+    check_dependencies()
+
+    total_steps = len(args.files) * 4 
+
+    print(f"Processing {len(args.files)} file(s) with {args.fps} FPS...")
+    
+    if HAS_TQDM:
+        pbar = tqdm(total=total_steps, unit="step", leave=True)
+    else:
+        print("Tip: Install 'tqdm' for a better progress bar (pip install tqdm)")
+        pbar = SimpleProgressBar(total=total_steps)
+
+    for file_path in args.files:
+        if not os.path.isfile(file_path):
+            sys.stdout.write("\n")
+            print(f"File not found: {file_path}")
+            continue
+            
+        try:
+            out255, out128 = generate_gif(file_path, args, pbar)
+            
+            # Print summary below the bar
+            if not HAS_TQDM: sys.stdout.write("\n")
+            
+            # Move cursor down if using tqdm to avoid overwriting bar
+            # (tqdm handles this usually, but safe to just print logs)
+            tqdm.write(f"Done: {os.path.basename(file_path)}")
+            tqdm.write(f"  > 256 colors: {get_file_size_mb(out255)} MB")
+            tqdm.write(f"  > 128 colors: {get_file_size_mb(out128)} MB")
+
+        except Exception:
+            sys.stdout.write("\n")
+            print(f"Failed to process {file_path}: {e}")
+            continue
+
+    pbar.close()
+    print("All tasks completed.")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nCancelled by user.")
+        sys.exit(130)

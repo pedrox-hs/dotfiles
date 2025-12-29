@@ -1,6 +1,1 @@
-########### Ignore all ############
-**/*
-
-############# Except: #############
-!.gitignore
-!.zsh_profile*
+.env

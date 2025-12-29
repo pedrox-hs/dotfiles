@@ -1,0 +1,10 @@
+{
+    "workbench.colorTheme": "Default Dark+",
+    "files.autoSave": "afterDelay",
+    "editor.renderWhitespace": "all",
+    "terminal.integrated.fontFamily": "'MesloLGS NF'",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "git.suggestSmartCommit": false,
+    "dart.runPubGetOnPubspecChanges": "prompt",
+    "dart.runPubGetOnNestedProjects": "both"
+}

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -euo pipefail
+
+
+WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
+LINK_TARGET="$XDG_CONFIG_HOME/sway/wallpaper"
+
+# Validate directory
+if [[ ! -d "$WALLPAPER_DIR" ]]; then
+    echo "Error: Directory not found: $WALLPAPER_DIR" >&2
+    exit 1
+fi
+
+# Select a random file
+SELECTED_WALLPAPER=$(find "$WALLPAPER_DIR" -type f | shuf -n 1)
+
+if [[ -z "$SELECTED_WALLPAPER" ]]; then
+    echo "Error: No wallpapers found in $WALLPAPER_DIR" >&2
+    exit 1
+fi
+
+# Update symlink
+ln -sf "$SELECTED_WALLPAPER" "$LINK_TARGET"
+
+# Apply changes (uncomment if needed)
+# swaymsg output '*' bg "$LINK_TARGET" fill
+
+echo "Current wallpaper: $SELECTED_WALLPAPER"

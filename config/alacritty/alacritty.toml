@@ -1,0 +1,6 @@
+[terminal]
+shell = { program = "zsh", args = ["-l", "-c", "zellij attach --index 0 || zellij"] }
+
+[window]
+opacity = 0.9
+option_as_alt = "OnlyLeft"
