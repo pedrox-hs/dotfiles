@@ -1,12 +1,12 @@
 # --- Configuration ---
 REPO_ROOT := $(shell pwd)
-SHELL_CONFIG ?= $(HOME)/.zshrc
+SHELL_CONFIG ?= ~/.zshrc
 
 # Define Editor Paths based on OS
 ifeq ($(OS),Darwin)
-	CONFIG_PATH := $(HOME)/Library/Application Support/%s
+	CONFIG_PATH := ~/Library/Application Support/%s
 else
-	CONFIG_PATH := $(HOME)/.config/%s
+	CONFIG_PATH := ~/.config/%s
 endif
 
 CODE_DIR ?= $(shell printf "$(CONFIG_PATH)" "Code/User")
@@ -19,13 +19,16 @@ install: link shell
 
 link: ## Link config files safely
 	@echo "🔗 Linking Common Apps..."
-	lns config/alacritty $(HOME)/.config/alacritty
-	lns config/nvim $(HOME)/.config/nvim
-	lns config/starship.toml $(HOME)/.config/starship.toml
-	
+	lns config/alacritty ~/.config/alacritty
+	lns config/zellij ~/.config/zellij
+	lns config/p10k-config.zsh ~/.p10k.zsh
+	lns config/starship.toml ~/.config/starship.toml
+	lns config/asdfrc ~/.asdfrc
+	lns config/nvim ~/.config/nvim
+
 ifeq ($(OS),Linux)
 	@echo "🐧 Linking Linux Specifics..."
-	lns config/sway $(HOME)/.config/sway
+	lns config/sway ~/.config/sway
 endif
 
 	@echo "📝 Checking for Editors (Dynamic Linking)..."
