@@ -2,9 +2,28 @@
     "workbench.colorTheme": "Default Dark+",
     "files.autoSave": "afterDelay",
     "editor.renderWhitespace": "all",
-    "terminal.integrated.fontFamily": "'MesloLGS NF'",
+    "editor.rulers": [
+        {
+            "column": 120
+        }
+    ],
+    "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font'",
     "diffEditor.ignoreTrimWhitespace": false,
     "git.suggestSmartCommit": false,
     "dart.runPubGetOnPubspecChanges": "prompt",
-    "dart.runPubGetOnNestedProjects": "both"
+    "dart.runPubGetOnNestedProjects": "both",
+    "explorer.confirmDelete": false,
+    "github.copilot.enable": {
+        "*": false,
+        "javascript": true,
+        "json": true,
+        "jsonc": true,
+        "makefile": true,
+        "python": true,
+        "shellscript": true,
+        "typescript": true,
+        "yaml": true
+    },
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "window.newWindowProfile": "Default"
 }
