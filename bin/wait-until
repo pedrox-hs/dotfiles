@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Exit on error or undefined variable
+set -euo pipefail
+
+if [ -z "${1:-}" ]; then
+    echo "Usage: $0 \"YYYY-MM-DD HH:MM:SS\" or \"1 hour\""
+    exit 1
+fi
+
+main() {
+    local TARGET_STRING="$*"
+    
+    # We pass the input to the epoch function
+    local TARGET_EPOCH
+    TARGET_EPOCH=$(get_target_epoch "$TARGET_STRING") || exit 1
+
+    local CURRENT_EPOCH=$(date +%s)
+    
+    local REMAINING_SECONDS=$((TARGET_EPOCH - CURRENT_EPOCH))
+
+    while [ "$REMAINING_SECONDS" -ge 0 ]; do
+        echo -ne "$(format_time "$REMAINING_SECONDS")\033[0K\r"
+        sleep 1
+        : $((REMAINING_SECONDS--))
+    done
+
+    echo ""
+}
+
+get_target_epoch() {
+    local TARGET="$1"
+
+    # 1. Prefer 'gdate' (GNU date) if installed on macOS
+    if command -v gdate >/dev/null 2>&1; then
+        gdate -d "$TARGET" +%s
+
+    # 2. Native macOS (BSD date)
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        # Try strict format first (YYYY-MM-DD HH:MM:SS)
+        if date -j -f "%Y-%m-%d %H:%M:%S" "$TARGET" +%s >/dev/null 2>&1; then
+             date -j -f "%Y-%m-%d %H:%M:%S" "$TARGET" +%s
+        else
+            # Try to parse relative time (Simple converter for "X hour/min/sec")
+            # Converts "1 hour" -> "+1H", "30 mins" -> "+30M"
+            local VAL=$(echo "$TARGET" | grep -oE '^[0-9]+')
+            local UNIT=$(echo "$TARGET" | grep -oE '[a-zA-Z]+$')
+            local FLAG=""
+
+            case "$UNIT" in
+                h|hour|hours) FLAG="H" ;;
+                m|min|mins|minute|minutes) FLAG="M" ;;
+                s|sec|secs|second|seconds) FLAG="S" ;;
+                *) 
+                    echo "Error: macOS native date requires strict format or 'gdate' for complex phrases." >&2
+                    exit 1 
+                    ;;
+            esac
+            
+            # Calculate time from NOW + Offset
+            date -v "+${VAL}${FLAG}" +%s
+        fi
+
+    # 3. Standard Linux (GNU date)
+    else
+        date -d "$TARGET" +%s
+    fi
+}
+
+format_time() {
+    local T=$1
+    local D=$((T / 86400))
+    local H=$((T / 3600 % 24))
+    local M=$((T / 60 % 60))
+    local S=$((T % 60))
+
+    if [[ $D -gt 0 ]]; then
+        printf '%d days %02d:%02d:%02d' "$D" "$H" "$M" "$S"
+    else
+        printf '%02d:%02d:%02d' "$H" "$M" "$S"
+    fi
+}
+
+main "$@"
