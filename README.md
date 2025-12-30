@@ -42,7 +42,7 @@ Before running the `make` installer, you need to set up the environment. Since I
 ```bash
 # Core tools, WM, and Terminal
 yay -S sway swaybg swayidle swaylock waybar swaync
-yay -S alacritty zellij neovim fastfetch fzf asdf-vm
+yay -S alacritty zellij neovim fastfetch fzf asdf-vm ttf-jetbrains-mono-nerd
 
 # Launcher & Utilities
 yay -S rofi-wayland brightnessctl wl-clipboard
@@ -58,7 +58,7 @@ yay -S vscodium-bin
 #### 🍎 macOS
 
 ```bash
-brew install alacritty zellij neovim fastfetch fzf asdf
+brew install alacritty zellij neovim fastfetch fzf asdf font-jetbrains-mono-nerd-font
 # Applications
 brew install --cask visual-studio-code raycast
 
