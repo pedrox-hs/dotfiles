@@ -10,6 +10,10 @@ function source_if_exists() {
   done
 }
 
-source "$DOTFILES_DIR/main.zsh"
+source_if_exists \
+  "$DOTFILES_ROOT/.env.default" \
+  "$DOTFILES_ROOT/.env"
+
+source  "$DOTFILES_DIR/main.zsh"
 
 unset DOTFILES_DIR DOTFILES_CONFIG
