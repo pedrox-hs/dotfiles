@@ -1,77 +1,153 @@
-"$schema" = 'https://starship.rs/config-schema.json'
+# ------------------------------------------------------------------------------
+# GLOBAL SETTINGS
+# ------------------------------------------------------------------------------
+add_newline = true
+command_timeout = 1000
 
+# Structure: [Left] ... [Fill] ... [Right]
 format = """
-[░▒▓](#a3aed2)\
-[  ](bg:#a3aed2 fg:#090c0c)\
-[](bg:#769ff0 fg:#a3aed2)\
+[╭─](fg:240)\
+[░▒▓](fg:236)\
+$os\
+$custom\
 $directory\
-[](fg:#769ff0 bg:#394260)\
 $git_branch\
 $git_status\
-[](fg:#394260 bg:#212736)\
-$nodejs\
-$rust\
-$golang\
-$php\
-[](fg:#212736 bg:#1d2230)\
-$time\
-[ ](fg:#1d2230)\
-\n$character"""
+[](fg:236)\
+$fill\
+$aws\
+$status\
+$cmd_duration\
+[▓▒░](fg:236)\
+$line_break\
+[╰─](fg:240)\
+$character"""
 
+# ------------------------------------------------------------------------------
+# PROFILES (Transient)
+# ------------------------------------------------------------------------------
 [profiles]
-transient="""
+transient = """
 $character\
 """
-
-rtransient="""
+rtransient = """
 $status\
 $cmd_duration\
 $time\
 """
 
-[directory]
-style = "fg:#e3e5e5 bg:#769ff0"
-format = "[ $path ]($style)"
-truncation_length = 3
-truncation_symbol = "…/"
+# ------------------------------------------------------------------------------
+# UTILS
+# ------------------------------------------------------------------------------
+[fill]
+symbol = "·"
+style = "fg:240"
 
-[directory.substitutions]
-"Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = " "
-"Pictures" = " "
+# ------------------------------------------------------------------------------
+# LEFT MODULES
+# ------------------------------------------------------------------------------
 
-[git_branch]
-symbol = ""
-style = "bg:#394260"
-format = '[[ $symbol $branch ](fg:#769ff0 bg:#394260)]($style)'
-
-[git_status]
-style = "bg:#394260"
-format = '[[($all_status$ahead_behind )](fg:#769ff0 bg:#394260)]($style)'
-
-[nodejs]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
-
-[rust]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
-
-[golang]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
-
-[php]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
-
-[time]
+# --- OS ---
+[os]
 disabled = false
-time_format = "%R" # Hour:Minute Format
-style = "bg:#1d2230"
-format = '[[  $time ](fg:#a0a9cb bg:#1d2230)]($style)'
+style = "bg:236 fg:255"
+format = "[ $symbol ]($style)"
+
+[os.symbols]
+Manjaro = ""
+Arch = ""
+Macos = ""
+Linux = ""
+
+# --- Directory: Parent Path (Custom) ---
+# Logic: Shows parent path only. Hidden if in home (~) or root (/).
+[custom.directory_prefix]
+command = """ zsh -c 'd=${(D)PWD}; [[ $d != "~" && $d != "/" ]] && print -n "${d:h}/"' """
+when = "true"
+style = "bg:236 fg:31"
+format = "[  ](fg:244 bg:236)[$output]($style)"
+
+# --- Directory: Current Folder (Basename) ---
+# Logic: Shows only the current folder name in bold/highlighted color.
+[directory]
+style = "bg:236 fg:39 bold"
+truncation_length = 1
+truncation_symbol = ""
+read_only = " "
+format = "[$path]($style)[$read_only]($style)"
+repo_root_format = "[$path]($style)[$read_only]($style)"
+
+# --- Git: Branch ---
+[git_branch]
+style = "bg:236 fg:76"
+format = "[  ](fg:244 bg:236)[ $symbol$branch ]($style)"
+symbol = "  "
+
+# --- Git: Status ---
+[git_status]
+style = "bg:236 fg:178"
+format = "[$all_status$ahead_behind ]($style)"
+# File counts
+conflicted = "${count}"
+untracked = "?${count}"
+stashed = "*${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+# Divergence
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+up_to_date = ""
+
+# ------------------------------------------------------------------------------
+# RIGHT MODULES
+# ------------------------------------------------------------------------------
+
+# --- AWS ---
+[aws]
+style = "bg:236 fg:208"
+format = '[](fg:236)[ $symbol($profile )(\($region\) )]($style)'
+symbol = " "
+
+# --- Command Status (Exit Code) ---
+[status]
+disabled = false
+style = "bg:236 fg:160"
+symbol = "✘"
+success_symbol = "" # Clean mode: hidden on success
+format = "[](fg:236)[ $status $symbol ]($style)"
+map_symbol = true
+pipestatus = true
+
+# --- Execution Time ---
+[cmd_duration]
+min_time = 2000
+style = "bg:236 fg:248"
+# Thin separator () for visual integration
+format = "[  ](fg:244 bg:236)[ $duration  ]($style)"
+
+# ------------------------------------------------------------------------------
+# PROMPT CHAR
+# ------------------------------------------------------------------------------
+[character]
+success_symbol = "[ ❯](bold green)"
+error_symbol = "[ ❯](bold red)"
+vimcmd_symbol = "[ ❮](bold green)"
+
+# ------------------------------------------------------------------------------
+# DISABLED MODULES
+# ------------------------------------------------------------------------------
+[package]
+disabled = true
+[nodejs]
+disabled = true
+[python]
+disabled = true
+[rust]
+disabled = true
+[golang]
+disabled = true
+[docker_context]
+disabled = true
