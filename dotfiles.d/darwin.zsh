@@ -1,17 +1,10 @@
 # region: macOS Applications Path
 
 # JetBrains Toolbox
-[[ -d "/Applications/JetBrains Toolbox.app/Contents/MacOS" ]] && \
-  export PATH="$PATH:/Applications/JetBrains Toolbox.app/Contents/MacOS"
+if [[ -d "/Applications/JetBrains Toolbox.app/Contents/MacOS" ]]; then
+  export PATH="$PATH:/Applications/JetBrains Toolbox.app/Contents/MacOS:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+fi
 
-# IntelliJ IDEA
-[[ -d "$HOME/Applications/IntelliJ IDEA.app/Contents/MacOS" ]] && \
-  export PATH="$PATH:$HOME/Applications/IntelliJ IDEA.app/Contents/MacOS"
-
-# Android Studio
-[[ -d "$HOME/Applications/Android Studio.app/Contents/MacOS" ]] && \
-  export PATH="$PATH:$HOME/Applications/Android Studio.app/Contents/MacOS"
-  
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 
 # Docker
@@ -20,6 +13,17 @@ export ANDROID_HOME="$HOME/Library/Android/sdk"
 # endregion
 
 # region: System Tweaks
+
+# Set Homebrew prefix based on architecture
+if [[ "$(/usr/bin/uname -m)" == "arm64" ]]
+then
+    # On ARM macOS, this script installs to /opt/homebrew only
+    HOMEBREW_PREFIX="/opt/homebrew"
+else
+    # On Intel macOS, this script installs to /usr/local only
+    HOMEBREW_PREFIX="/usr/local"
+fi
+eval "$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 
 # Load SSH keys into Apple Keychain
 ssh-add --apple-load-keychain 2> /dev/null

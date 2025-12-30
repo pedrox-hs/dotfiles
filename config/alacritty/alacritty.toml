@@ -1,6 +1,19 @@
 [terminal]
-shell = { program = "zsh", args = ["-l", "-c", "zellij attach --index 0 || zellij"] }
+shell = { program = "zsh", args = ["-lic", "zellij attach --index 0 || zellij"] }
+
+[font]
+normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
+bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
+italic = { family = "JetBrainsMono Nerd Font", style = "Italic" }
 
 [window]
 opacity = 0.9
 option_as_alt = "OnlyLeft"
+
+[keyboard]
+bindings = [
+    { key = "Left", mods = "Alt", chars = "\u001Bb" },
+    { key = "Right", mods = "Alt", chars = "\u001Bf" },
+
+    { key = "Back", mods = "Alt", chars = "\u0017" }
+]
