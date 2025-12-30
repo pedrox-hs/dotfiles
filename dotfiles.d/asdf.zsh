@@ -1,5 +1,6 @@
 # https://asdf-vm.com/guide/getting-started.html
 export ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
+export ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY=latest_installed
 
 if [[ -d "$ASDF_DATA_DIR" ]]; then
   export PATH="$ASDF_DATA_DIR/shims:$PATH"
