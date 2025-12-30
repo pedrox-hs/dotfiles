@@ -1,6 +1,7 @@
 {
     "workbench.colorTheme": "Default Dark+",
     "files.autoSave": "afterDelay",
+    "editor.fontFamily": "'JetBrainsMono Nerd Font'",
     "editor.renderWhitespace": "all",
     "editor.rulers": [
         {
