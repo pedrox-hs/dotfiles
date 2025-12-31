@@ -7,7 +7,6 @@ __conda_path="$HOME/miniforge3"
 
 if [[ -d "$__conda_path" ]]; then
   __conda_env="$__miniforge_home/etc/profile.d/conda.sh"
-  __mamba_env="$__miniforge_home/etc/profile.d/mamba.sh"
 
   # Try to use the modern 'conda shell.zsh hook' (Fast & Clean)
   # This sets up the environment without manually modifying PATH heavily
@@ -25,9 +24,9 @@ if [[ -d "$__conda_path" ]]; then
     fi
   fi
   
-  # Initialize mamba as well if present
-  source_if_exists "$__mamba_env"
+  # Initialize mamba as well
+  eval "$(mamba shell hook --shell zsh)"
 
 fi
 
-unset __conda_path __conda_setup __conda_env __mamba_env
+unset __conda_path __conda_setup __conda_env
