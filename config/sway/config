@@ -198,9 +198,9 @@ input 1:1:AT_Translated_Set_2_keyboard {
 # Sound
 #
 
-bindsym XF86AudioRaiseVolume exec amixer -D pulse set Master 2%+ unmute
-bindsym XF86AudioLowerVolume exec amixer -D pulse set Master 2%- unmute
-bindsym XF86AudioMute        exec amixer -D pulse set Master toggle
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +2%
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -2%
+bindsym XF86AudioMute        exec pactl set-sink-mute @DEFAULT_SINK@ toggle
 
 #
 # Monitor Brightness
