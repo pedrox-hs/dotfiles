@@ -36,6 +36,9 @@ class SimpleProgressBar:
             self.current = self.total
         self._print_bar()
 
+    def write(self, msg):
+        sys.stdout.write(msg + "\n")
+
     def close(self):
         print() 
 
@@ -234,11 +237,11 @@ def main():
             
             # Move cursor down if using tqdm to avoid overwriting bar
             # (tqdm handles this usually, but safe to just print logs)
-            tqdm.write(f"Done: {os.path.basename(file_path)}")
-            tqdm.write(f"  > 256 colors: {get_file_size_mb(out255)} MB")
-            tqdm.write(f"  > 128 colors: {get_file_size_mb(out128)} MB")
+            pbar.write(f"Done: {os.path.basename(file_path)}")
+            pbar.write(f"  > 256 colors: {get_file_size_mb(out255)} MB")
+            pbar.write(f"  > 128 colors: {get_file_size_mb(out128)} MB")
 
-        except Exception:
+        except Exception as e:
             sys.stdout.write("\n")
             print(f"Failed to process {file_path}: {e}")
             continue
