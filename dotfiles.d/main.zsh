@@ -15,6 +15,18 @@ export HISTFILE="$HOME/.zsh_history"
 export HISTSIZE=10000
 export SAVEHIST=50000
 export HISTCONTROL=ignoreboth
+export HIST_MAX_LINES_BY_ENTRY=10
+
+# prevents big commands in zsh_history
+zshaddhistory() {
+  local line_count=${#1//[^$'\n']/}
+
+  if (( line_count > HIST_MAX_LINES_BY_ENTRY )); then
+    return 1
+  fi
+
+  return 0
+}
 # endregion
 
 # region: General Envs and Aliases
