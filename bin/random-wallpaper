@@ -2,28 +2,70 @@
 
 set -euo pipefail
 
-
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
 LINK_TARGET="$XDG_CONFIG_HOME/sway/wallpaper"
+BLOCK_LIST="$XDG_CONFIG_HOME/sway/wallpaper.deny"
+DENY_CURRENT=false
 
-# Validate directory
+[[ ! -f "$BLOCK_LIST" ]] && touch "$BLOCK_LIST"
+
 if [[ ! -d "$WALLPAPER_DIR" ]]; then
     echo "Error: Directory not found: $WALLPAPER_DIR" >&2
     exit 1
 fi
 
-# Select a random file
-SELECTED_WALLPAPER=$(find "$WALLPAPER_DIR" -type f | shuf -n 1)
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -d|--deny-current)
+            DENY_CURRENT=true
+            shift # Remove argument and proceed
+            ;;
+        -h|--help)
+            echo "Usage: $(basename "$0") [OPTIONS]"
+            echo "Pick a random wallpaper for Sway, respecting a deny list."
+            echo ""
+            echo "Options:"
+            echo "  -d, --deny-current   Add the CURRENT wallpaper to the deny list before switching."
+            echo "  -h, --help           Show this message."
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            exit 1
+            ;;
+    esac
+done
 
-if [[ -z "$SELECTED_WALLPAPER" ]]; then
-    echo "Error: No wallpapers found in $WALLPAPER_DIR" >&2
+if [[ "$DENY_CURRENT" == "true" ]]; then
+    if [[ -L "$LINK_TARGET" ]] && [ -e "$LINK_TARGET" ]; then
+        CURRENT_WALLPAPER=$(readlink -f "$LINK_TARGET")
+        
+        if ! grep -Fxq "$CURRENT_WALLPAPER" "$BLOCK_LIST"; then
+            echo "$CURRENT_WALLPAPER" >> "$BLOCK_LIST"
+            echo "🚫 Denied: $(basename "$CURRENT_WALLPAPER")"
+        else
+            echo "⚠️ Already denied: $(basename "$CURRENT_WALLPAPER")"
+        fi
+    else
+        echo "⚠️ No active wallpaper found to deny." >&2
+    fi
+fi
+
+ALL_FILES=$(find "$WALLPAPER_DIR" -type f)
+CANDIDATES=$(grep -vFxf "$BLOCK_LIST" <<< "$ALL_FILES" || true)
+
+if [[ -z "$CANDIDATES" ]]; then
+    echo "Error: No valid wallpapers found (Check if all are blocked)." >&2
     exit 1
 fi
 
-# Update symlink
+SELECTED_WALLPAPER=$(shuf -n 1 <<< "$CANDIDATES")
+
 ln -sf "$SELECTED_WALLPAPER" "$LINK_TARGET"
+echo "✅ Selected: $(basename "$SELECTED_WALLPAPER")"
 
-# Apply changes (uncomment if needed)
-# swaymsg output '*' bg "$LINK_TARGET" fill
-
-echo "Current wallpaper: $SELECTED_WALLPAPER"
+if [[ -n "${SWAYSOCK:-}" ]] && [[ -e "$SWAYSOCK" ]]; then
+    if command -v swaymsg >/dev/null 2>&1; then
+        swaymsg output '*' bg "$LINK_TARGET" fill 2>/dev/null || true
+    fi
+fi
