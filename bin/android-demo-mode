@@ -3,12 +3,31 @@
 
 set -euo pipefail
 
-ACTION="$1"
-TIME_PARAM="${2:-}"
+ACTION=""
+TIME_PARAM=""
+OUTPUT="/dev/null"
+
+for arg in "$@"; do
+  case $arg in
+    -v|--verbose)
+      OUTPUT="/dev/stdout"
+      shift
+      ;;
+    on|off)
+      ACTION="$arg"
+      shift
+      ;;
+    *)
+      TIME_PARAM="$arg"
+      shift
+      ;;
+  esac
+done
+
 ADB="${ADB:-adb}"
 
 if [[ "$ACTION" != "on" && "$ACTION" != "off" ]]; then
-  echo "Usage: $0 [on|off] [hhmm]" >&2
+  echo "Usage: $0 [-v|--verbose] [on|off] [hhmm]" >&2
   exit 1
 fi
 
@@ -19,29 +38,29 @@ if [[ "$ACTION" == "on" ]]; then
   echo "Enabling Demo Mode..."
 
   # Enter demo mode
-  "$ADB" shell am broadcast -a com.android.systemui.demo -e command enter > /dev/null
+  "$ADB" shell am broadcast -a com.android.systemui.demo -e command enter > "$OUTPUT"
   sleep 2
 
   # Set clock if provided (force 4 digits)
   if [[ -n "$TIME_PARAM" ]]; then
-    CLEAN_TIME=$(printf "%04d" "$TIME_PARAM")
-    "$ADB" shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm "$CLEAN_TIME" > /dev/null
+    CLEAN_TIME=$(printf "%04d" "${TIME_PARAM#0}")
+    "$ADB" shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm "$CLEAN_TIME" > "$OUTPUT"
   fi
 
   # Set battery (unplugged, 100%)
-  "$ADB" shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false > /dev/null
-  "$ADB" shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 > /dev/null
+  "$ADB" shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false > "$OUTPUT"
+  "$ADB" shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 > "$OUTPUT"
 
   # Set network icons
-  "$ADB" shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 > /dev/null
-  "$ADB" shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4 > /dev/null
+  "$ADB" shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 > "$OUTPUT"
+  "$ADB" shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4 > "$OUTPUT"
 
   # Hide notifications
-  "$ADB" shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false > /dev/null
+  "$ADB" shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false > "$OUTPUT"
 
 elif [[ "$ACTION" == "off" ]]; then
   echo "Disabling Demo Mode..."
-  "$ADB" shell am broadcast -a com.android.systemui.demo -e command exit > /dev/null
+  "$ADB" shell am broadcast -a com.android.systemui.demo -e command exit > "$OUTPUT"
 fi
 
 exit 0
