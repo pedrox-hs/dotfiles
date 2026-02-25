@@ -28,4 +28,17 @@ eval "$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 # Load SSH keys into Apple Keychain
 ssh-add --apple-load-keychain 2> /dev/null
 
+# Timeout command polyfill
+ if ! command -v timeout &> /dev/null; then
+   if command -v gtimeout &> /dev/null; then
+     alias timeout='gtimeout'
+   else
+     timeout() {
+       local duration="$1"
+       shift
+       perl -e "alarm shift; exec @ARGV" "$duration" "$@"
+     }
+   fi
+ fi
+
 # endregion
