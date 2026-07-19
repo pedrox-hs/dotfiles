@@ -128,7 +128,7 @@ Once dependencies are ready, use the **Makefile** to link configurations and set
 ### 1. Clone
 
 ```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+git clone https://github.com/pedrox-hs/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 ```
