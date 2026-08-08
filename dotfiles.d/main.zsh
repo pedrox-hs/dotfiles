@@ -88,11 +88,14 @@ source_if_exists "$HOME/.sdkman/bin/sdkman-init.sh"
 
 # Ensure SDKMAN! candidates are at the front of PATH
 if [ -d "$SDKMAN_DIR/candidates" ]; then
-  for candidate in "$SDKMAN_DIR/candidates"/*; do
-    if [ -d "$candidate/current/bin" ]; then
-      export PATH="$candidate/current/bin:$PATH"
-    fi
+  for candidate in "$SDKMAN_DIR/candidates"/*(/N); do
+    [[ -d "$candidate/current/bin" ]] && export PATH="$candidate/current/bin:$PATH"
   done
+fi
+
+# Ensure ASDF shims are at the front of PATH
+if [ -d "$HOME/.asdf/shims" ]; then
+  export PATH="$HOME/.asdf/shims:$PATH"
 fi
 
 

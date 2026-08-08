@@ -22,7 +22,8 @@ main() {
     while [ "$REMAINING_SECONDS" -ge 0 ]; do
         echo -ne "$(format_time "$REMAINING_SECONDS")\033[0K\r"
         sleep 1
-        : $((REMAINING_SECONDS--))
+        CURRENT_EPOCH=$(date +%s)
+        REMAINING_SECONDS=$((TARGET_EPOCH - CURRENT_EPOCH))
     done
 
     echo ""

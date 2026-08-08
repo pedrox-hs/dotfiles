@@ -1,6 +1,6 @@
 # --- Configuration ---
 REPO_ROOT := $(shell pwd)
-SHELL_CONFIG ?= ~/.zshrc
+SHELL_CONFIG ?= $(HOME)/.zshrc
 
 # Define Editor Paths based on OS
 ifeq ($(OS),Darwin)

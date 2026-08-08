@@ -1,6 +1,7 @@
 # https://stackoverflow.com/a/36226832
 OS := $(shell uname -s)
-SHELL := env PATH="$(PATH):$(PWD)/bin" /bin/bash
+SHELL := /bin/bash
+export PATH := $(CURDIR)/bin:$(PATH)
 
 # Define environment variables
 ENV_FILES := $(wildcard .env.default .env)
